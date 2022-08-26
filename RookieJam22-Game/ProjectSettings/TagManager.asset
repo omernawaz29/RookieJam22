@@ -5,7 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Chalk
-  - DropZone
+  - SafeArea
+  - TeacherStick
+  - ChalkDrop
+  - FollowerDrop
   layers:
   - Default
   - TransparentFX
@@ -13,7 +16,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Detectable
   - 
   - 
   - 

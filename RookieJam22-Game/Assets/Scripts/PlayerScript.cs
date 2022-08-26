@@ -6,6 +6,8 @@ using Unity.VisualScripting;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
+using Sequence = DG.Tweening.Sequence;
 
 [RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class PlayerScript : MonoBehaviour
@@ -17,25 +19,33 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] float stackOffset = 0.1f;
     [SerializeField] float stackHeight = 5f;
 
+    [SerializeField] float dropChalksOnHit = 3f;
 
 
     [SerializeField] Transform chalkHolder;
+    [SerializeField] Image detectionMeter;
 
     Stack<Transform> collectedChalks;
+    Stack<AiStudent> followingStudents;
     int chalkRows = 0;
     bool isInDrop = false;
 
     Animator myAnim;
-    ChalkCollectorScript collectorScript;
+    ChalkCollectorScript chalkCollector;
+    FollowersCollectorScript followerCollector;
+
+
     private void Start()
     {
         myAnim = GetComponentInChildren<Animator>();
         collectedChalks = new Stack<Transform>();
+        followingStudents = new Stack<AiStudent>();
         chalkRows = 0;
         
     }
     private void FixedUpdate()
     {
+        myAnim.SetFloat("Speed", myRigidbody.velocity.magnitude);
         Vector3 newVelocity = new Vector3(myJoystick.Horizontal * mySpeed, myRigidbody.velocity.y, myJoystick.Vertical * mySpeed);
 
 
@@ -45,15 +55,9 @@ public class PlayerScript : MonoBehaviour
             Vector3 newDir = newVelocity.normalized;
             newDir.y = 0;
             transform.forward = Vector3.Lerp(transform.forward, newDir, Time.deltaTime * myTurnSpeed);
-            myAnim.SetBool("isRunning", true);
-        }
-        else
-        {
-            myAnim.SetBool("isRunning", false);
         }
 
         myRigidbody.velocity = newVelocity;
-
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -63,12 +67,17 @@ public class PlayerScript : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "DropZone")
+        if (other.tag == "ChalkDrop")
         {
             isInDrop = true;
-            other.gameObject.TryGetComponent<ChalkCollectorScript>(out collectorScript);
+            other.gameObject.TryGetComponent<ChalkCollectorScript>(out chalkCollector);
 
             StartCoroutine(DropChalk(other));
+        }
+        if(other.tag == "FollowerDrop")
+        {
+            other.gameObject.TryGetComponent<FollowersCollectorScript>(out followerCollector);
+            DropFollowers();
         }
 
         if (other.gameObject.tag == "Chalk")
@@ -84,18 +93,24 @@ public class PlayerScript : MonoBehaviour
             collectedChalks.Push(chalkCollected.transform);
             if (collectedChalks.Count != 0 && collectedChalks.Count % stackHeight == 0)
                 chalkRows++;
+
+            UIManager.instance.UpdateChalkCount(collectedChalks.Count);
+        }
+
+        if (other.tag == "TeacherStick")
+        {
+            Debug.Log("Got Hit!");
+            StartCoroutine(DropChalksOnHit());
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if(other.tag == "DropZone")
+        if(other.tag == "ChalkDrop")
         {
-            collectorScript = null;
+            chalkCollector = null;
             isInDrop = false;
-        }
-
-        
+        } 
     }
 
 
@@ -105,22 +120,55 @@ public class PlayerScript : MonoBehaviour
         {
             yield return new WaitForSeconds(0.25f);
 
-            if(collectedChalks.Count > 0 && collectorScript != null)
+            if(collectedChalks.Count > 0 && chalkCollector != null)
             {
                 var chalk = collectedChalks.Pop();
                 chalk.parent = null;
-                collectorScript.AddChalk();
+                chalkCollector.AddChalk();
 
                 Vector3 endPos = other.transform.position + (Vector3.up * 0.5f) + (Vector3.right * UnityEngine.Random.Range(-0.5f, 0.5f)) + (Vector3.forward * UnityEngine.Random.Range(-0.5f, 0.5f));
                 chalk.transform.DOJump(endPos, 1, 1, 0.1f).OnComplete(() => chalk.transform.DOPunchScale(new Vector3(0.2f, 0.2f, 0.2f), 0.1f).OnComplete(() => Destroy(chalk.gameObject)));
-       
+                UIManager.instance.UpdateChalkCount(collectedChalks.Count);
             }
         }
 
         yield return null;
     }
 
+    IEnumerator DropChalksOnHit()
+    {
+        for (int i = 0; i < dropChalksOnHit && collectedChalks.Count > 0; i++)
+        {
+            var chalk = collectedChalks.Pop();
+            var chalkRB = chalk.GetComponent<Rigidbody>();
 
+            chalk.parent = null;
+
+
+            chalk.GetComponent<ChalkScript>().Dropped();
+            chalkRB.isKinematic = false;
+            chalkRB.AddForce(Vector3.up * 5 + transform.right * UnityEngine.Random.Range(-5f, 5f), ForceMode.Impulse);
+            UIManager.instance.UpdateChalkCount(collectedChalks.Count);
+        }
+        yield return null;
+    }
+
+    void DropFollowers()
+    {
+        while(followingStudents.Count > 0)
+        {
+            var follower = followingStudents.Pop();
+            follower.PlaceInClassRoom(followerCollector.GetFollowerIdlePosition());
+            followerCollector.AddFollower();
+        }
+    }
+
+    public void AddFollower(AiStudent student)
+    {
+        followingStudents.Push(student);
+        UIManager.instance.UpdateFollowerCount(followingStudents.Count); 
+    }
+    
 }
 
 

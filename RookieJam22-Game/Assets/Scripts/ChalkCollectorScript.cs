@@ -23,19 +23,13 @@ public class ChalkCollectorScript : MonoBehaviour
 
     public void AddChalk()
     {
-
-        if (isCompleted)
-        {
-            Completed();
-            return;
-        }
-
-        chalksDeposited++;
         transform.DOPunchScale(Vector3.one * 0.5f, 0.1f);
-        UpdateText();
+        chalksDeposited++;
 
-        if (chalksDeposited == chalksRequired)
-            isCompleted = true;
+        if (chalksDeposited >= chalksRequired)
+            Completed();
+        else 
+            UpdateText();
     }
 
     void UpdateText()
@@ -45,10 +39,11 @@ public class ChalkCollectorScript : MonoBehaviour
 
     void Completed()
     {
+        if (isCompleted)
+            return;
+
         dropZoneText.gameObject.SetActive(false);
         dropeZoneCompleteImage.SetActive(true);
-        dropeZoneCompleteImage.transform.DOPunchScale(Vector3.one * 0.75f, 0.1f);
-
         isCompleted = true;
     }
 

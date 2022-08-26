@@ -15,4 +15,15 @@ public class ChalkScript : MonoBehaviour
             TriggerCol.enabled = CollisionCol.enabled = false;
         }
     }
+
+    public void Dropped()
+    {
+        CollisionCol.enabled = true;
+        Invoke("EnableCollectTrigger", 1f);
+    }
+
+    void EnableCollectTrigger()
+    {
+        TriggerCol.enabled = true;
+    }
 }
