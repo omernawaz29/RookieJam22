@@ -15,12 +15,14 @@ public class AiChasePlayerState : AiState
         escapeDistance = 10f;
         agent.teacher.chaseTimer = -10f;
         Debug.Log("Entering Chase Player State");
-        
+        agent.navMeshAgent.stoppingDistance = 1f;
+        agent.playerController.AddTeacher(agent.teacher);
     }
 
     public void Exit(AiAgent agent)
     {
         agent.Invoke("ChaseCoolDownReset", agent.teacher.config.chaseCoolDown);
+        agent.playerController.RemoveTeacher(agent.teacher);
     }
 
     public AiStateId GetId()

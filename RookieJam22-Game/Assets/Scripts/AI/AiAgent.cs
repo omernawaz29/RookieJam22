@@ -13,6 +13,8 @@ public class AiAgent : MonoBehaviour
     [HideInInspector]
     public Transform playerTransform;
     [HideInInspector]
+    public PlayerScript  playerController;
+    [HideInInspector]
     public Animator myAnim;
     [HideInInspector]
     public AiTeacher teacher;
@@ -33,7 +35,7 @@ public class AiAgent : MonoBehaviour
         
 
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
-
+        playerController = playerTransform.GetComponent<PlayerScript>();
 
         stateMachine = new AiStateMachine(this);
 

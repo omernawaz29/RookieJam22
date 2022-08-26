@@ -26,7 +26,8 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] Image detectionMeter;
 
     Stack<Transform> collectedChalks;
-    Stack<AiStudent> followingStudents;
+    List<AiStudent> followingStudents;
+    List<AiTeacher> chasingTeachers;
     int chalkRows = 0;
     bool isInDrop = false;
 
@@ -39,9 +40,11 @@ public class PlayerScript : MonoBehaviour
     {
         myAnim = GetComponentInChildren<Animator>();
         collectedChalks = new Stack<Transform>();
-        followingStudents = new Stack<AiStudent>();
+        followingStudents = new List<AiStudent>();
+        chasingTeachers = new List<AiTeacher>();
+
         chalkRows = 0;
-        
+
     }
     private void FixedUpdate()
     {
@@ -62,7 +65,7 @@ public class PlayerScript : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -74,10 +77,10 @@ public class PlayerScript : MonoBehaviour
 
             StartCoroutine(DropChalk(other));
         }
-        if(other.tag == "FollowerDrop")
+        if (other.tag == "FollowerDrop")
         {
             other.gameObject.TryGetComponent<FollowersCollectorScript>(out followerCollector);
-            DropFollowers();
+            DepositFollowers();
         }
 
         if (other.gameObject.tag == "Chalk")
@@ -99,28 +102,27 @@ public class PlayerScript : MonoBehaviour
 
         if (other.tag == "TeacherStick")
         {
-            Debug.Log("Got Hit!");
             StartCoroutine(DropChalksOnHit());
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if(other.tag == "ChalkDrop")
+        if (other.tag == "ChalkDrop")
         {
             chalkCollector = null;
             isInDrop = false;
-        } 
+        }
     }
 
 
     IEnumerator DropChalk(Collider other)
     {
-        while(isInDrop)
+        while (isInDrop)
         {
             yield return new WaitForSeconds(0.25f);
 
-            if(collectedChalks.Count > 0 && chalkCollector != null)
+            if (collectedChalks.Count > 0 && chalkCollector != null)
             {
                 var chalk = collectedChalks.Pop();
                 chalk.parent = null;
@@ -153,11 +155,12 @@ public class PlayerScript : MonoBehaviour
         yield return null;
     }
 
-    void DropFollowers()
+    void DepositFollowers()
     {
-        while(followingStudents.Count > 0)
+        while (followingStudents.Count > 0)
         {
-            var follower = followingStudents.Pop();
+            var follower = followingStudents[followingStudents.Count - 1];
+            followingStudents.Remove(follower);
             follower.PlaceInClassRoom(followerCollector.GetFollowerIdlePosition());
             followerCollector.AddFollower();
         }
@@ -165,10 +168,56 @@ public class PlayerScript : MonoBehaviour
 
     public void AddFollower(AiStudent student)
     {
-        followingStudents.Push(student);
-        UIManager.instance.UpdateFollowerCount(followingStudents.Count); 
+        student.agent.playerTransform = GetFollowTransform();
+        followingStudents.Add(student);
+        UIManager.instance.UpdateFollowerCount(followingStudents.Count);
+
+        UpdateChaserFollowTargets();
+
     }
-    
+
+    public void LoseFollower(AiStudent follower)
+    {
+        int index = followingStudents.IndexOf(follower);
+        followingStudents.Remove(follower);
+        for (int i = 0; i < followingStudents.Count; i++)
+        {
+            if(i == 0)
+                followingStudents[i].agent.playerTransform = transform;
+            else
+                followingStudents[i].agent.playerTransform = followingStudents[i - 1].transform; 
+        }
+
+        UpdateChaserFollowTargets();
+    }
+
+    public Transform GetFollowTransform()
+    {
+        if (followingStudents.Count > 0)
+            return followingStudents[followingStudents.Count - 1].transform;
+        else
+            return transform;
+    }
+
+    public void AddTeacher(AiTeacher teacher)
+    {
+        chasingTeachers.Add(teacher);
+    }
+
+    public void RemoveTeacher(AiTeacher teacher)
+    {
+        chasingTeachers.Remove(teacher);
+
+    }
+
+    void UpdateChaserFollowTargets()
+    {
+        foreach( AiTeacher t in chasingTeachers)
+        {
+            t.UpdatePlayerTransform(GetFollowTransform());
+        }
+    }
+
 }
 
 

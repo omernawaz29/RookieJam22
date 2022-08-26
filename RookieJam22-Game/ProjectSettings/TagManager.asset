@@ -9,6 +9,8 @@ TagManager:
   - TeacherStick
   - ChalkDrop
   - FollowerDrop
+  - Follower
+  - Teacher
   layers:
   - Default
   - TransparentFX

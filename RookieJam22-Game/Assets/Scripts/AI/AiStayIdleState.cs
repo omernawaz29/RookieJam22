@@ -17,13 +17,13 @@ public class AiStayIdleState : AiState
         agent.navMeshAgent.stoppingDistance = 0;
         distance = agent.student.config.colliderRadius;
         count = 0;
+        scanInterval = 1.0f / agent.student.scanFrequency;
 
         Debug.Log("Entering the stay Idle State");
     }
 
     public void Exit(AiAgent agent)
     {
-        scanInterval = 1.0f / agent.student.scanFrequency;
     }
 
     public AiStateId GetId()
@@ -37,7 +37,6 @@ public class AiStayIdleState : AiState
         if ((agent.transform.position - agent.student.idlePosition.position).magnitude >= 0.25f)
         {
             agent.navMeshAgent.SetDestination(agent.student.idlePosition.position);
-            Debug.Log("Set my destination to class pos");
         }
 
         if (agent.student.isInDrop)

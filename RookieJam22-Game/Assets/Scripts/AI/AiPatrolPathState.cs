@@ -10,11 +10,12 @@ public class AiPatrolPathState : AiState
     {
         currentWayPoint = 0;
         agent.navMeshAgent.speed = agent.teacher.config.walkSpeed;
-
+        agent.navMeshAgent.stoppingDistance = 0.2f;
     }
 
     public void Exit(AiAgent agent)
     {
+
     }
 
     public AiStateId GetId()

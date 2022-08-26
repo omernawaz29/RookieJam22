@@ -75,7 +75,17 @@ public class AiSensor : MonoBehaviour
 
                 if (agent.teacher.chaseTimer >= agent.teacher.config.chaseStartTime)
                 {
+                    agent.playerTransform = agent.playerController.GetFollowTransform();
                     agent.stateMachine.ChangeState(AiStateId.ChasePlayer);
+                }
+            }
+
+            if(gobj.tag == "Follower" && agent.stateMachine.currentState == AiStateId.ChasePlayer)
+            {
+                if((transform.position - gobj.transform.position).magnitude <= agent.teacher.config.playerAttackDistance)
+                {
+                    Debug.Log("In Follower Range");
+                    agent.myAnim.SetTrigger("HitPlayer");
                 }
             }
         }
