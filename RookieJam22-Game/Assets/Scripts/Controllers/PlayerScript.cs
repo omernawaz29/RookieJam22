@@ -128,6 +128,7 @@ public class PlayerScript : MonoBehaviour
         {
             Debug.Log("Got HIT");
             myAnim.SetTrigger("GetHit");
+            UIManager.instance.ShowHitText();
             StartCoroutine(DropChalksOnHit());
         }
     }

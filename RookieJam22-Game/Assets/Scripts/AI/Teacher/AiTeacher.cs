@@ -16,7 +16,7 @@ public class AiTeacher : MonoBehaviour
     {
         chaseTimer = 0;
         agent = GetComponent<AiAgent>();
-        stickCol.enabled = false;
+        //stickCol.enabled = false;
     }
 
     public void UpdatePlayerTransform(Transform newTransform)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,8 +13,10 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI chalkCount;
     [SerializeField] TextMeshProUGUI followerCount;
+    [SerializeField] TextMeshProUGUI randomHitText;
     [SerializeField] GameObject StartScreen;
     [SerializeField] GameObject EndScreen;
+    [SerializeField] string[] HitTexts;
 
 
     Transform playerTransform;
@@ -26,11 +29,13 @@ public class UIManager : MonoBehaviour
         instance = this;
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         SetDetectionMeter(0);
+        randomHitText.text = " ";
     }
 
     private void Update()
     {
         PlaceDetectionMeter();
+        
     }
 
     private void FixedUpdate()
@@ -70,4 +75,34 @@ public class UIManager : MonoBehaviour
     {
         EndScreen.SetActive(true);
     }
+
+    public void ShowHitText()
+    {
+        if (randomHitText.text != " ")
+            return;
+        var pos = Camera.main.WorldToScreenPoint(playerTransform.position + Vector3.up * detectionMeterOffset);
+
+
+        randomHitText.transform.position = pos;
+        randomHitText.transform.localScale = Vector3.one;
+
+        int textindex = Random.Range(0, HitTexts.Length);
+        randomHitText.text = HitTexts[textindex];
+        
+        AudioManager.instance.Play("Hit " + textindex.ToString());
+
+
+        randomHitText.transform.DOMove(pos + Vector3.up * 1f, 2f).OnComplete(() => randomHitText.text = " ");
+        randomHitText.transform.DOPunchScale(new Vector3(0.5f, 0.5f, 0.5f), 1f);
+        
+        
+    }
+    void PlaceHitText()
+    {
+        var pos = Camera.main.WorldToScreenPoint(playerTransform.position + Vector3.up * detectionMeterOffset);
+        randomHitText.transform.position = pos + Vector3.up * 0.25f;
+    }
+
+
+
 }

@@ -42,7 +42,7 @@ public class ChalkCollectorScript : MonoBehaviour
     {
         if (isCompleted)
             return;
-
+        transform.localScale = new Vector3(1, 1, 1);
         dropZoneText.gameObject.SetActive(false);
         dropeZoneCompleteImage.SetActive(true);
         isCompleted = true;

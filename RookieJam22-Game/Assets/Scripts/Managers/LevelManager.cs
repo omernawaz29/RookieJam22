@@ -29,6 +29,9 @@ public class LevelManager : MonoBehaviour
         chalksFull = false;
         followersFull = false;
 
+        if (!AudioManager.instance.isPlaying("BG"))
+            AudioManager.instance.Play("BG");
+
     }
 
     public void ChalksFull()

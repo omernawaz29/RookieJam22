@@ -44,7 +44,7 @@ public class AiChasePlayerState : AiState
 
         if ((agent.transform.position - agent.playerTransform.position).magnitude <= agent.teacher.config.playerAttackDistance)
         {
-            agent.StartCoroutine(HitColEnable(agent));
+            //agent.StartCoroutine(HitColEnable(agent));
             agent.myAnim.SetTrigger("HitPlayer");
         }
         else if ((agent.transform.position - agent.playerTransform.position).magnitude >= escapeDistance)
